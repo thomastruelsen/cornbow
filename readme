@@ -1,1 +1,126 @@
-jsk13 
+Making an extremely lateweight game max 13kb zipped.
+The theme is Unicorns and Rainbows.
+
+Requirements:
+Full playable on both mobile and desktop.
+
+My strengths: Game design & Coding
+My weakness: Graphics. (This is where i need help)
+
+Current idea:
+I will break the theme down anagram style.
+So the game contain:
+Unicorns (Hitting them makes them attack you)
+Rainbows (Altered game state)
+Corn (Currency)
+Bows (Weapons)
+UNI (Score, as in UNI Points, which accumulates when consuming corn)
+Rain (Weather, triggers rainbow if during sun)
+
+Lore:
+Intro: “The Cornlord demands tribute: 100.000 corns to be paid by the end of the third rainbow.“
+The vicious rules known as The Cornlord, is actually a Unicorn wearing a very obvious corn shaped headgear.
+
+Core concepts
+
+Players shoot corncorbs with bow shooting growing corncobs to gain surplus corn.
+The player must not shoot random appearing unicorns, which gets harder especially during Rainbow events.
+
+Corn is consumed when firing bow and can also be spent to upgrade and recruit units
+
+Recruited units attack corncubs for you, gathering corn in the process.
+
+Lose condition: Failing to pay tribute or Running out of Corn instantly ends the game.
+Win condition: Paying the tribute.
+
+Features:
+
+Weather:
+Sun goes from left to right, at its highest heatwave will turn all attacking Kernel Soldiers to popcorn. When the sun sets it is replaced with the Moon. Shooting the sun turns the corn into popcorn.  
+Moon has no effect
+Rain increases corn growth and when combined with Sun Triggers Rainbow
+Rainbow summons more unicorns and each rainbow enables the next tier unicorn to appear.
+
+Recruitable Units:
+Kernel Soldiers [cost: 10 corn] [1 damage]
+When hitting a cornhub with a bow all Kernel Soldiers charge and attack that cornhub until depleted then recalled. Hitting nothing with a bow recalls them all.
+Maize Knights [cost: 100 corn] [1 damage]
+Auto attacks cornhub and automatically retreats when the sun is too hot. Hitting nothing with a bow recalls them all.
+Corn Crusader [cost: 1000 corn] [2 damage]
+Auto attacks cornhubs immune to heat, never recalled.
+
+Unicorns:
+The Cornlord [instadeath damage] only appears when tribute needs to be paid.
+Common Unicorn [100 damage] can always spawn randomly.
+Red Unicorn [1000 damage] Turns Soldiers and Knights into popcorn when close.
+Dark Unicorn [1000 damage] Invisible when the moon is up, only eyes blink.
+Colorful Unicorn [1000 damage] Follows players last clicked location.
+*Each rainbow instantly spawns a new non common unicorn, that unicorn is now unlocked and can now randomly appear from now on.
+
+Cornhub (despawns when hp is zero)
+Plant [1 hp][0 corn per hit]
+Green small cornhub. Plant [5 hp][1 corn per hit]
+Yellow small cornhub. Plant [10 hp][2 corn per hit]
+Yellow big cornhub. Plant [20 hp][4 corn per hit]
+Rainbow big cornhub Plant [30 hp][10 corn per hit] transforms during rainbow.
+
+UNI Upgrades:
+Poppers [cost: 2000 corn]: Popcorn damages nearby cornhub. The popcorn auto targets any present cornhub.
+Auto retreat [cost: 500 corn]: Shooting automatically retreats heat vulnerable units that would otherwise be popcorn.
+Ricochet lvl 1 [cost: 1000 corn]:Shooting a cornhub also targets another cornhub of the same type. Each level increases the amount of Ricochet shots up to level 3.
+Multi shots lvl 1 [cost: 100 corn] shots this lvl x corn when shooting. Up to level 10.
+
+*Price increase should have a multiplier that makes continued purchase of lvl based UNI Upgrades and Recruited units become more expensive.
+
+Current technical approach
+Vanilla JavaScript — no framework.
+DOM-generated game world — the grid and entities are created dynamically with document.createElement.
+CSS-driven graphics — the visuals are handcrafted CSS rather than image assets.
+CSS Grid-like spatial world — the game is divided into rows and tiles.
+Tile DOM nodes are the spatial layer:
+row → tile → entity
+Each tile has a unique ID such as tile-4-2.
+Grid coordinates are the game's spatial model:
+w.row[y][x]
+Entities know their root coordinates.
+Entity composition through multiple DOM nodes:
+A single Cornhub can consist of root, mid, and top nodes occupying different tiles.
+A Unicorn similarly occupies multiple tiles: head, body, tail, legs.
+Logical entity ownership:
+Occupied tiles store a reference to the entity's root coordinate.
+Therefore multiple tiles can belong to one entity.
+Multiple entities can potentially occupy the same tile, allowing visual overlap and depth.
+Classes represent visual state, e.g.:
+cornHub
+root, mid, top
+lvl1–lvl5
+entity types such as common
+IDs represent location/interaction, while classes represent appearance/animation.
+CSS pseudo-elements (::before, ::after) are heavily used to create additional visual geometry without additional DOM nodes.
+CSS transforms are used for organic shapes extending beyond the tile:
+rotation
+translation
+CSS gradients are used for detailed textures. Your Cornhub top uses layered gradients to produce the corn pattern.
+CSS variables control shared values such as:
+--tileScale
+colors
+animation duration
+CSS transitions/animation provide visual movement and state changes.
+No image assets are required for the current graphics approach.
+Hand-written code, not generated/minified by a tool.
+Current prototype is approximately 4.8 KB while already containing:
+world generation
+20×20 tile grid
+entity spawning
+Cornhub growth levels
+Unicorn spawning/placement
+CSS rendering.
+
+The fundamental architecture is essentially:
+
+JavaScript = world/entity logic
+DOM = spatial representation
+CSS = sprite renderer
+Tiles = coordinate/collision layer
+Classes = entity appearance/state
+Pseudo-elements + gradients = graphical detail

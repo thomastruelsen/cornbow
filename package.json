@@ -1,0 +1,34 @@
+{
+  "name": "cornbow",
+  "version": "1.0.0",
+  "description": "jsk13 Unicorns and Rainbows",
+  "keywords": [
+    "jsk13"
+  ],
+  "homepage": "https://github.com/thomastruelsen/cornbow#readme",
+  "bugs": {
+    "url": "https://github.com/thomastruelsen/cornbow/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomastruelsen/cornbow.git"
+  },
+  "license": "ISC",
+  "author": "Thomas Truelsen",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run mini && npm run finalizer",
+    "mini": "cd minified && terser -o main.js -c passes=2 -m toplevel -- ../src/main.js && cd .. && cp index.html ./minified/index.html && css-minify -f ./src/style.css -o ./minified/",
+    "maxmin": "cd minified && terser -o minsrc.js -c passes=2 -m toplevel -- .../src/main.js && npx roadroller minsrc.js -o minsrc.js",
+    "zip": "cd minified && 7z a game.zip . -xr!.DS_Store -xr!__MACOSX",
+    "finalizer": "node finalizer.js"
+  },
+  "dependencies": {
+    "css-minify": "^2.1.0",
+    "prettier": "^3.9.6",
+    "roadroller": "^2.1.0",
+    "terser": "^5.50.0"
+  }
+}
