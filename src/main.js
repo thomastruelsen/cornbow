@@ -1,7 +1,7 @@
 w = {
   row: {},
-  rows: 20,
-  tilesPerRow: 20,
+  rows: 30,
+  tilesPerRow: 19,
   tileScale: 20,
   tribute: 100000,
   uni: 0,
@@ -83,7 +83,7 @@ const startLoop = () => {
 };
 const updateWeather = () => {
   w.weatherTrackPos = (w.weatherTrackPos + 1) % w.weatherTrack.length;
-
+  let spawn = 0;
   const getWeatherFromPos = (pos) => {
     if (pos === 0) {
       spawn = 2;
@@ -117,8 +117,13 @@ const updateWeather = () => {
     );
 
   if (currentTributeTime >= maxTributeTimeLeft) {
+    // Pay or gameover
     w.pause = true;
     w.locked = true;
+  } else {
+    for (let i = 0; i < spawn; i++) {
+      makeCornHub(randomFreeCordinates(), 1);
+    }
   }
 };
 
