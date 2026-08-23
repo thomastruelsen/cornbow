@@ -1,5 +1,5 @@
 :root {
-  --aniDuration: 1s;
+  --aniDuration: 0.5s;
   --num: 0;
   --score: 0;
   --headerHeight: 100px;
@@ -40,9 +40,17 @@ body {
   color: var(--white);
 }
 
-.flex,
+p {
+  margin: 0;
+}
+
+.f,
 #grid .row {
   display: flex;
+}
+.fs {
+  display: flex;
+  justify-content: space-between;
 }
 
 .w100,
@@ -50,12 +58,129 @@ body {
   width: 100%;
 }
 
-#grid {
-  width: 80%;
-  height: 80%;
-  margin: auto;
-  padding: 20px;
+#weatherIcon {
+  width: 50px;
+  height: 40px;
+  background-color: black;
+  --aniDuration: 1.5s;
+  transition-property: var(--aniDuration);
+  overflow: hidden;
+  padding: 5px;
+  margin-right: 4px;
+  transition-timing-function: linear;
+}
+
+#weatherIcon.sun {
+  background-color: #00009c;
+}
+
+.rainbow {
+  background: linear-gradient(in hsl longer hue 45deg, var(--red) 0 100%);
+}
+
+#wAni:before,
+#wAni:after,
+.rain #rain:after {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  position: relative;
+  border-radius: 50px;
+  top: 5px;
+  background-color: var(--yellow);
+}
+#wAni:after {
+  top: -5px;
+}
+
+.moon #wAni:after,
+.rain #wAni:after {
+  left: 3px;
+  background-color: black;
+}
+
+.sun #wAni:after {
+  box-shadow: 0px 0px 10px 0px var(--orange);
+  left: unset;
+  background-color: var(--yellow);
+}
+
+#wAni {
+  transform: translate(var(--wAniProg), 0px);
+  transition-duration: var(--aniDuration);
+}
+
+.rain #rain {
+  background-color: var(--blue);
+  height: 10px;
+  width: 10px;
+  border-radius: 50px;
+  margin: 5px;
+  box-shadow: inset 0px 0px 1px 0px var(--white);
+}
+
+.rain #rain:after {
+  top: -1px;
+  border-radius: 50px 0px 0px 0px;
+  transform: rotate(225deg);
+  width: 5px;
+  height: 5px;
+  left: 3px;
+  background-color: inherit;
+}
+
+#tributeTracker {
   border: var(--border);
+  margin: 2px;
+  width: 150px;
+  position: relative;
+}
+#tributeTracker > div {
+  width: var(--prog);
+  position: absolute;
+  height: 18px;
+  background-color: var(--violet);
+  top: 0px;
+  transition-duration: var(--aniDuration);
+  box-shadow: 0px 0px 2px 0px var(--blue);
+  transition-timing-function: linear;
+}
+#tribute {
+  position: relative;
+  text-align: center;
+}
+
+#payTribute {
+  margin: 2px;
+  margin-right: 10px;
+}
+.res {
+  margin: 2px;
+  position: relative;
+}
+
+#corn {
+  counter-reset: num var(--num);
+  transition: --num 1s;
+}
+#corn:after {
+  content: counter(num);
+  min-width: 25px;
+}
+#uni {
+  counter-reset: score var(--score);
+  transition: --score 1s;
+}
+#uni:after {
+  content: counter(score);
+  min-width: 25px;
+}
+
+#grid {
+  margin: auto;
+  border: var(--border);
+  box-sizing: border-box;
 }
 
 .tile {
@@ -80,6 +205,11 @@ body {
 #main {
   max-width: 1000px;
   margin: 0 auto;
+  overflow: hidden;
+}
+#main:before {
+  content: " " attr(p) " ";
+  position: absolute;
 }
 
 /* ENTITIES */
@@ -229,4 +359,82 @@ body {
   margin-top: -5%;
   background: var(--white);
   border-radius: 0 0 35% 35%;
+}
+.entity.attack {
+  transform: skew(10deg, 10deg);
+}
+.entity.dying {
+  animation: die 0.3s linear forwards;
+}
+.entity.harvested {
+  animation: harvest 0.3s linear forwards;
+}
+.cornHub.top.entity.harvested {
+  --s: 2px;
+  --c2: var(--brown);
+  --c1: var(--backgroundColor);
+}
+
+.pos {
+  color: var(--green);
+}
+.neg {
+  color: var(--red);
+}
+
+@keyframes rain {
+  0% {
+    box-shadow:
+      0.625em 0.875em 0 -0.125em rgba(255, 255, 255, 0.2),
+      -0.875em 1.125em 0 -0.125em rgba(255, 255, 255, 0.2),
+      -1.375em -0.125em 0 #0cf;
+  }
+  25% {
+    box-shadow:
+      0.625em 0.875em 0 -0.125em rgba(255, 255, 255, 0.2),
+      -0.875em 1.125em 0 -0.125em #0cf,
+      -1.375em -0.125em 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow:
+      0.625em 0.875em 0 -0.125em #0cf,
+      -0.875em 1.125em 0 -0.125em rgba(255, 255, 255, 0.2),
+      -1.375em -0.125em 0 rgba(255, 255, 255, 0.2);
+  }
+  100% {
+    box-shadow:
+      0.625em 0.875em 0 -0.125em rgba(255, 255, 255, 0.2),
+      -0.875em 1.125em 0 -0.125em rgba(255, 255, 255, 0.2),
+      -1.375em -0.125em 0 #0cf;
+  }
+}
+
+@keyframes die {
+  0% {
+    filter: sepia(0);
+  }
+  20% {
+    filter: sepia(0.8);
+  }
+  80% {
+    filter: sepia(0.9);
+    transform: scale(0.6);
+  }
+  100% {
+    filter: sepia(1);
+    transform: scale(0);
+  }
+}
+@keyframes harvest {
+  0% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.5;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
 }

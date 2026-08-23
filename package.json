@@ -22,7 +22,7 @@
     "build": "npm run mini && npm run finalizer",
     "mini": "cd minified && terser -o main.js -c passes=2 -m toplevel -- ../src/main.js && cd .. && cp index.html ./minified/index.html && css-minify -f ./src/style.css -o ./minified/",
     "maxmin": "cd minified && terser -o minsrc.js -c passes=2 -m toplevel -- .../src/main.js && npx roadroller minsrc.js -o minsrc.js",
-    "zip": "cd minified && 7z a game.zip . -xr!.DS_Store -xr!__MACOSX",
+    "zip": "cd minified && 7z a ../game.zip . -xr!.DS_Store -xr!__MACOSX",
     "finalizer": "node finalizer.js"
   },
   "dependencies": {
