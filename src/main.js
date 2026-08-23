@@ -198,7 +198,10 @@ const newDiv = (className, id) => {
 const makeTiles = () => {
   const root = document.getElementById("grid");
   document.body.style.setProperty("--tileScale", w.tileScale + "px");
-
+  document.body.style.setProperty(
+    "--totalTileWidth",
+    w.tileScale * w.tilesPerRow + "px",
+  );
   for (let i = 0; i < w.rows; i++) {
     const row = newDiv("row", `row-${i}`);
     w.row[i] = {};
@@ -218,14 +221,28 @@ const makeTiles = () => {
   }
 };
 const damageTile = (tile, damage) => {
+  console.count("Damage tile called");
   if (tile.root) {
     const rootTile = findRootTile(tile.root);
     if (rootTile.entity && !rootTile.entity.dying) {
       if (rootTile.entity.type === "cornHub") {
-        adjustValue(rootTile.entity.cornPerHit * damage, "corn");
         rootTile.entity.hp -= damage;
+        console.log("CornHub HP:", rootTile.entity.hp);
         if (rootTile.entity.hp <= 0) {
           rootTile.entity.dying = true;
+          const deathlvl = rootTile.entity.lvl;
+          for (let i = 0; i < deathlvl; i++) {
+            setTimeout(() => {
+              window.requestAnimationFrame(() => {
+                makeCornProjectile(
+                  tile.elm,
+                  document.getElementById("corn"),
+                  true,
+                );
+              });
+            }, i * 100);
+          }
+          adjustValue(rootTile.entity.cornDrop, "corn");
           animateEntity(tile, "harvested", false, () => {
             removeEntity(tile);
           });
@@ -270,17 +287,25 @@ const gameOver = (msg = "") => {
   }
 };
 
-const makeCornProjectile = (fromElm, toElm) => {
+const makeCornProjectile = (fromElm, toElm, randomize = false) => {
   const projectile = newDiv("cornP");
   fromElm.appendChild(projectile);
+
   const fromRect = fromElm.getBoundingClientRect();
   const toRect = toElm.getBoundingClientRect();
   const deltaX = toRect.left - fromRect.left;
   const deltaY = toRect.top - fromRect.top;
-  projectile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+  if (randomize) {
+    projectile.style.left = `${Math.round(Math.random() * 15)}px`;
+    projectile.style.top = `${Math.round(Math.random() * 15)}px`;
+    projectile.style.transform = `translate(${deltaX + Math.random() * 10 - 5}px, ${deltaY + Math.random() * 10 - 5}px)`;
+  } else {
+    projectile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+  }
   setTimeout(() => {
     projectile.remove();
-  }, w.tickIntval * 1.5);
+  }, w.tickIntval * 1.2);
 };
 
 const getProjectilePath = (entryTile, targetTile) => {
@@ -319,6 +344,7 @@ const fireBow = (tile) => {
     makeCornProjectile(ammo, tile.elm);
 
     const path = getProjectilePath(w.row[29][8], tile);
+    console.log(path, path.length);
     path.forEach((t) => {
       t.elm.classList.add("hit");
       damageTile(t, w.damage);
@@ -461,7 +487,7 @@ const newEntity = (type, lvl = 1, entityData = {}) => {
   const entity = {
     type: type ?? "unkown",
     lvl: lvl,
-    cornPerHit: 1,
+    cornDrop: 0,
     clicked: entityData.clicked ?? 0,
     growth: entityData.growth ?? 0,
     hp: 1,
@@ -472,19 +498,19 @@ const newEntity = (type, lvl = 1, entityData = {}) => {
 
     if (lvl === 1) {
       entity.hp = 1;
-      entity.cornPerHit = 0;
+      entity.cornDrop = 0;
     } else if (lvl === 2) {
       entity.hp = 5;
-      entity.cornPerHit = 1;
+      entity.cornDrop = 5;
     } else if (lvl === 3) {
       entity.hp = 10;
-      entity.cornPerHit = 2;
+      entity.cornDrop = 50;
     } else if (lvl === 4) {
       entity.hp = 20;
-      entity.cornPerHit = 4;
+      entity.cornDrop = 100;
     } else if (lvl === 5) {
       entity.hp = 30;
-      entity.cornPerHit = 10;
+      entity.cornDrop = 250;
     }
   } else if (type === "unicorn") {
     entity.hp = 10;

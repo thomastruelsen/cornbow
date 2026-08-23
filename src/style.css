@@ -63,6 +63,12 @@ p {
   width: 100%;
 }
 
+#header {
+  position: relative;
+  z-index: 9;
+  background-color: black;
+}
+
 #weatherIcon {
   width: 50px;
   height: 40px;
@@ -204,6 +210,7 @@ p {
   min-height: var(--tileScale);
   border-color: #6969690a;
   transition-duration: var(--aniDuration);
+  position: relative;
 }
 .tile.hit {
   border-color: var(--orange);
@@ -288,8 +295,9 @@ p {
 }
 
 #footer {
-  display: flex;
-  justify-content: center;
+  border: none;
+  max-width: var(--totalTileWidth);
+  margin: 0 auto;
 }
 
 #gun {
@@ -297,6 +305,7 @@ p {
   display: flex;
   justify-content: space-between;
   width: 200px;
+  margin-left: calc(var(--tileScale) * 4 + var(--tileScale) / 2);
 }
 /* ENTITIES */
 .cornHub {
