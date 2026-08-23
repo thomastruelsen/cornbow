@@ -55,6 +55,7 @@ body {
   height: 80%;
   margin: auto;
   padding: 20px;
+  border: var(--border);
 }
 
 .tile {
