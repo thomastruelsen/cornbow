@@ -33,6 +33,12 @@
   inherits: false;
 }
 
+@property --trib {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
 body {
   margin: 0;
   background-color: var(--backgroundColor);
@@ -53,8 +59,7 @@ p {
   justify-content: space-between;
 }
 
-.w100,
-#grid .row {
+.w100 {
   width: 100%;
 }
 
@@ -176,11 +181,20 @@ p {
   content: counter(score);
   min-width: 25px;
 }
+#trib {
+  counter-reset: trib var(--trib);
+  transition: --trib 1s;
+}
+#trib:after {
+  content: counter(trib);
+  min-width: 25px;
+}
 
 #grid {
   margin: auto;
   border: var(--border);
   box-sizing: border-box;
+  width: fit-content;
 }
 
 .tile {
@@ -189,6 +203,11 @@ p {
   min-width: var(--tileScale);
   min-height: var(--tileScale);
   border-color: #6969690a;
+  transition-duration: var(--aniDuration);
+}
+.tile.hit {
+  border-color: var(--orange);
+  box-shadow: inset 0px 0px 10px 0px var(--red);
 }
 
 .btn {
@@ -212,6 +231,73 @@ p {
   position: absolute;
 }
 
+#bow {
+  width: 100px;
+  background-color: var(--brown);
+  height: 10px;
+  border-radius: 30px 30px 0px 0px;
+  margin: 10px auto 0 auto;
+  position: relative;
+  transition-duration: var(--aniDuration);
+  --aniDuration: 0.03s;
+  transform: translate(-30px, -5px);
+}
+#bow:after {
+  content: "";
+  display: block;
+  height: 25px;
+  position: absolute;
+  width: 100px;
+  border-bottom: 2px solid black;
+  border-radius: 100%;
+  transition-duration: var(--aniDuration);
+}
+
+#bow.fire:after {
+  height: 10px;
+}
+#bow.fire .cornP {
+  left: 48%;
+  margin-top: 20px;
+}
+#ammo {
+  position: relative;
+  left: 45%;
+  width: 5%;
+  top: 20px;
+}
+#magazine {
+  display: flex;
+  flex-wrap: wrap;
+  width: 25px;
+  gap: 2px;
+  margin-top: 4px;
+}
+#magazine .cornP {
+  position: relative;
+}
+.cornP {
+  background-color: var(--orange);
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  box-shadow: inset 0px 0px 3px 0px var(--yellow);
+  border-radius: 2px;
+  border: 1px solid #252525;
+  transition-duration: 0.3s;
+}
+
+#footer {
+  display: flex;
+  justify-content: center;
+}
+
+#gun {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  width: 200px;
+}
 /* ENTITIES */
 .cornHub {
   position: relative;

@@ -1,4 +1,4 @@
-w = {
+const w = {
   row: {},
   rows: 30,
   tilesPerRow: 19,
@@ -6,6 +6,7 @@ w = {
   tribute: 100000,
   uni: 0,
   corn: 0,
+  magazine: 10,
   weather: "sun",
   r: "rainbow",
   tributeTimer: 3,
@@ -15,15 +16,17 @@ w = {
   weatherTimer: 0,
   weatherTrack: [0, 1, 0, 1, 3, 0, 1, 0, 1, 4],
   weatherTrackPos: 0,
+  uniHits: 0,
   cycles: 0,
   ticks: 0,
   tickIntval: 1000,
   damage: 1,
 };
-
+window.w = w;
 const startLoop = () => {
-  const weatherDuration = 5;
+  const weatherDuration = 20;
   adjustValue(100);
+  adjustValue(w.tribute, "trib");
   setInterval(() => {
     if (w.pause) return;
     requestAnimationFrame(() => {
@@ -81,6 +84,7 @@ const startLoop = () => {
     }
   };
 };
+
 const updateWeather = () => {
   w.weatherTrackPos = (w.weatherTrackPos + 1) % w.weatherTrack.length;
   let spawn = 0;
@@ -120,6 +124,9 @@ const updateWeather = () => {
     // Pay or gameover
     w.pause = true;
     w.locked = true;
+    if (w.corn < w.tribute) {
+      gameOver("You failed to pay the tribute!");
+    }
   } else {
     for (let i = 0; i < spawn; i++) {
       makeCornHub(randomFreeCordinates(), 1);
@@ -127,20 +134,26 @@ const updateWeather = () => {
   }
 };
 
-const adjustValue = (amount, type = "corn") => {
+const adjustValue = (amount = 0, type = "corn") => {
   let tempClass = "";
-  if (amount < 0) {
+  if ((amount < 0 && type !== "trib") || (amount > 0 && type === "trib")) {
     tempClass = "neg";
   }
 
   if (type === "corn") {
     w.corn += amount;
     if (w.corn < 0) w.corn = 0;
+    if (w.corn >= w.tribute) {
+      document.getElementById("payTribute").disabled = false;
+    } else {
+      document.getElementById("payTribute").disabled = true;
+    }
+
     const elm = document.getElementById("corn");
 
     if (tempClass) {
+      elm.classList.add(tempClass);
       setTimeout(() => {
-        elm.classList.add(tempClass);
         elm.classList.remove(tempClass);
       }, w.tickIntval);
     }
@@ -152,8 +165,19 @@ const adjustValue = (amount, type = "corn") => {
     const elm = document.getElementById("uni");
     elm.style.setProperty("--score", w.uni);
     if (tempClass) {
+      elm.classList.add(tempClass);
       setTimeout(() => {
-        elm.classList.add(tempClass);
+        elm.classList.remove(tempClass);
+      }, w.tickIntval);
+    }
+  } else if (type === "trib") {
+    w.tribute += amount;
+    if (w.tribute < 0) w.tribute = 0;
+    const elm = document.getElementById("trib");
+    elm.style.setProperty("--trib", w.tribute);
+    if (tempClass) {
+      elm.classList.add(tempClass);
+      setTimeout(() => {
         elm.classList.remove(tempClass);
       }, w.tickIntval);
     }
@@ -183,6 +207,8 @@ const makeTiles = () => {
       row.appendChild(tile);
       w.row[i][j] = {
         elm: tile,
+        x: j,
+        y: i,
       };
       tile.onclick = () => {
         triggerTitleClick(w.row[i][j]);
@@ -191,35 +217,149 @@ const makeTiles = () => {
     }
   }
 };
-
+const damageTile = (tile, damage) => {
+  if (tile.root) {
+    const rootTile = findRootTile(tile.root);
+    if (rootTile.entity && !rootTile.entity.dying) {
+      if (rootTile.entity.type === "cornHub") {
+        adjustValue(rootTile.entity.cornPerHit * damage, "corn");
+        rootTile.entity.hp -= damage;
+        if (rootTile.entity.hp <= 0) {
+          rootTile.entity.dying = true;
+          animateEntity(tile, "harvested", false, () => {
+            removeEntity(tile);
+          });
+        } else {
+          rootTile.entity.clicked++;
+          animateEntity(tile, "attack", true);
+        }
+      } else if (rootTile.entity.type === "unicorn") {
+        rootTile.entity.hp -= damage;
+        if (rootTile.entity.hp <= 0) {
+          rootTile.entity.dying = true;
+          animateEntity(tile, "dying", false, () => {
+            removeEntity(tile);
+          });
+        } else {
+          rootTile.entity.clicked++;
+          animateEntity(tile, "attack", true);
+          adjustValue(0 - rootTile.entity.damage, "corn");
+          adjustValue(rootTile.entity.damage * w.uniHits, "trib");
+          w.uniHits++;
+        }
+      }
+    }
+  }
+};
 const triggerTitleClick = (tile) => {
   if (tile.root) {
     const rootTile = findRootTile(tile.root);
-
     console.log("Root tile found", rootTile);
-
-    if (
-      rootTile.entity &&
-      rootTile.entity.type === "cornHub" &&
-      !rootTile.entity.dying
-    ) {
-      const damage = w.damage;
-
-      adjustValue(rootTile.entity.cornPerHit * damage, "corn");
-      rootTile.entity.hp -= damage;
-      if (rootTile.entity.hp <= 0) {
-        rootTile.entity.dying = true;
-        animateEntity(tile, "harvested", false, () => {
-          removeEntity(tile);
-        });
-      } else {
-        rootTile.entity.clicked++;
-        animateEntity(tile, "attack", true);
-      }
-    }
-  } else {
-    triggerRetreat(tile);
   }
+
+  if (tile) {
+    fireBow(tile);
+  }
+};
+
+const gameOver = (msg = "") => {
+  w.pause = true;
+  w.locked = true;
+  if (confirm("Game Over! " + msg)) {
+    location.reload();
+  }
+};
+
+const makeCornProjectile = (fromElm, toElm) => {
+  const projectile = newDiv("cornP");
+  fromElm.appendChild(projectile);
+  const fromRect = fromElm.getBoundingClientRect();
+  const toRect = toElm.getBoundingClientRect();
+  const deltaX = toRect.left - fromRect.left;
+  const deltaY = toRect.top - fromRect.top;
+  projectile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+  setTimeout(() => {
+    projectile.remove();
+  }, w.tickIntval * 1.5);
+};
+
+const getProjectilePath = (entryTile, targetTile) => {
+  const path = [];
+
+  const start = {
+    x: entryTile.x,
+    y: entryTile.y,
+  };
+
+  const end = {
+    x: targetTile.x,
+    y: targetTile.y,
+  };
+
+  const dx = end.x - start.x;
+
+  for (let y = start.y - 1; y >= end.y; y--) {
+    const progress = (start.y - y) / (start.y - end.y);
+    const x = start.x + dx * progress;
+    const col = Math.round(x);
+
+    path.push(w.row[y][col]);
+  }
+
+  return path;
+};
+const fireBow = (tile) => {
+  const bow = document.getElementById("bow");
+  const ammo = document.getElementById("ammo");
+
+  const magazineElm = document.getElementById("magazine");
+  if (w.magazine > 0) {
+    document.getElementById("ammo").innerHTML = "";
+    bow.classList.add("fire");
+    makeCornProjectile(ammo, tile.elm);
+
+    const path = getProjectilePath(w.row[29][8], tile);
+    path.forEach((t) => {
+      t.elm.classList.add("hit");
+      damageTile(t, w.damage);
+      setTimeout(() => {
+        t.elm.classList.remove("hit");
+      }, w.tickIntval * 0.2);
+    });
+
+    if (magazineElm.lastChild) {
+      magazineElm.removeChild(magazineElm.lastChild);
+    }
+
+    setTimeout(() => {
+      bow.classList.remove("fire");
+
+      if (w.magazine > 0) {
+        document.getElementById("ammo").appendChild(newDiv("cornP"));
+      }
+    }, w.tickIntval * 0.2);
+
+    w.magazine--;
+  } else {
+    if (w.corn >= 10) {
+      adjustValue(-10, "corn");
+      w.magazine = 10;
+    } else if (w.corn > 0) {
+      w.magazine = w.corn;
+      adjustValue(0 - w.corn, "corn");
+    } else if (w.corn <= 0) {
+      gameOver("You ran out of corn!");
+    }
+    reload();
+  }
+};
+
+const reload = () => {
+  const magazineElm = document.getElementById("magazine");
+  for (let i = 0; i < w.magazine - 1; i++) {
+    magazineElm.appendChild(newDiv("cornP"));
+  }
+  document.getElementById("ammo").appendChild(newDiv("cornP"));
 };
 
 const animateEntity = (tile, animation = "", reset = false, cb) => {
@@ -287,27 +427,34 @@ const triggerRetreat = (tile) => {
 };
 
 const randomCordinates = () => {
-  const row = Math.floor(Math.random() * (w.rows - 2)) + 2;
+  const row = Math.floor(Math.random() * (w.rows - 3)) + 2;
   const col = Math.floor(Math.random() * w.tilesPerRow);
   return { x: col, y: row };
 };
 
 const randomFreeCordinates = (unicorn = false) => {
-  let cordinates = randomCordinates();
-  while (
-    (w.row[cordinates.y][cordinates.x]?.root ||
+  const maxAttempts = 1000;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const cordinates = randomCordinates();
+
+    const occupied =
       w.row[cordinates.y][cordinates.x]?.root ||
       w.row[cordinates.y - 1][cordinates.x]?.root ||
-      w.row[cordinates.y - 2][cordinates.x]?.root) &&
-    (!unicorn ||
-      (unicorn &&
-        (w.row[cordinates.y][cordinates.x - 1]?.root ||
-          w.row[cordinates.y][cordinates.x + 1]?.root ||
-          w.row[cordinates.y - 1][cordinates.x - 1]?.root)))
-  ) {
-    cordinates = randomCordinates();
+      w.row[cordinates.y - 2][cordinates.x]?.root;
+
+    const unicornBlocked =
+      unicorn &&
+      (w.row[cordinates.y][cordinates.x - 1]?.root ||
+        w.row[cordinates.y][cordinates.x + 1]?.root ||
+        w.row[cordinates.y - 1][cordinates.x - 1]?.root);
+
+    if (!occupied && !unicornBlocked) {
+      return cordinates;
+    }
   }
-  return cordinates;
+
+  return null;
 };
 
 const newEntity = (type, lvl = 1, entityData = {}) => {
@@ -339,11 +486,17 @@ const newEntity = (type, lvl = 1, entityData = {}) => {
       entity.hp = 30;
       entity.cornPerHit = 10;
     }
+  } else if (type === "unicorn") {
+    entity.hp = 10;
+    entity.damage = 100;
   }
   return entity;
 };
 
 const makeCornHub = (cordinates = { x: 0, y: 3 }, lvl = 1, entity) => {
+  if (!cordinates) {
+    return;
+  }
   let animateGrowth = false;
   const baseClass = "cornHub entity";
   if (lvl > 5) lvl = 5;
@@ -399,6 +552,9 @@ const makeCornHub = (cordinates = { x: 0, y: 3 }, lvl = 1, entity) => {
 };
 
 const makeUnicorn = (cordinates = { x: 0, y: 3 }, type = "common") => {
+  if (!cordinates) {
+    return;
+  }
   if (
     cordinates.x < 1 ||
     cordinates.x + 1 > w.tilesPerRow - 1 ||
@@ -440,6 +596,14 @@ const bindControls = () => {
     w.pause = !w.pause;
     document.getElementById("main").setAttribute("p", w.pause ? "Paused" : "");
   });
+
+  document.getElementById("payTribute").addEventListener("click", () => {
+    w.pause = true;
+    w.locked = true;
+    adjustValue(w.tribute, "uni");
+    adjustValue(-w.tribute, "corn");
+    adjustValue(-w.tribute, "trib");
+  });
 };
 
 const boot = () => {
@@ -459,11 +623,14 @@ const boot = () => {
   makeCornHub(randomFreeCordinates(), 2);
   makeCornHub(randomFreeCordinates(), 3);
   makeCornHub(randomFreeCordinates(), 4);
+  makeCornHub(randomFreeCordinates(), 4);
+  makeCornHub(randomFreeCordinates(), 4);
   makeCornHub(randomFreeCordinates(), 5);
 
   makeUnicorn(randomFreeCordinates(true), "common");
 
   bindControls();
+  reload();
   startLoop();
 };
 
