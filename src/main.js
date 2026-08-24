@@ -160,7 +160,6 @@ const adjustValue = (amount = 0, type = "corn") => {
 };
 
 const damageTile = (tile, damage) => {
-  console.count("Damage tile called");
   if (tile.root) {
     const rootTile = findRootTile(tile.root);
     if (rootTile.entity && !rootTile.entity.dying) {
