@@ -10,7 +10,6 @@ const w = {
   weather: "sun",
   r: "rainbow",
   tributeTimer: 3,
-  rain: false,
   pause: false,
   locked: false,
   weatherTimer: 0,
@@ -21,6 +20,7 @@ const w = {
   ticks: 0,
   tickIntval: 1000,
   damage: 1,
+  trail: false,
 };
 window.w = w;
 
@@ -84,8 +84,8 @@ const makeTiles = () => {
         x: j,
         y: i,
       };
-      tile.onclick = () => {
-        triggerTitleClick(w.row[i][j]);
+      tile.onclick = (e) => {
+        triggerTitleClick(e, w.row[i][j]);
       };
       root.appendChild(row);
     }
@@ -292,11 +292,21 @@ const makeUnicorn = (cordinates = { x: 0, y: 3 }, type = "common") => {
   w.row[cordinates.y + 1][cordinates.x + 1].root = cordinates;
 };
 
-const bindControls = () => {
+const bindControls = (options) => {
   document.getElementById("weatherIcon").addEventListener("click", () => {
     if (w.locked) return;
     w.pause = !w.pause;
     document.getElementById("main").setAttribute("p", w.pause ? "Paused" : "");
+  });
+
+  document.getElementById("backdrop").addEventListener("click", (e) => {
+    if (w.locked || w.pause) return;
+    const x = e.clientX < w.tileScale * w.tilesPerRow ? 0 : w.tilesPerRow - 1;
+    const y = Math.round((e.clientY - options.header) / w.tileScale);
+
+    console.log("Backdrop clicked", x, y);
+
+    fireBow(w.row[y][x]);
   });
 
   document.getElementById("payTribute").addEventListener("click", () => {
@@ -339,7 +349,11 @@ const boot = () => {
 
   makeUnicorn(randomFreeCordinates(true), "common");
 
-  bindControls();
+  //lockLayoutForMath;
+  const headH = 50;
+  document.getElementById("header").style.maxHeight = headH + "px";
+
+  bindControls({ header: headH });
   reload();
   startLoop();
 };

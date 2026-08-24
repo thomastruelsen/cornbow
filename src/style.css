@@ -243,11 +243,11 @@ p {
   background-color: var(--brown);
   height: 10px;
   border-radius: 30px 30px 0px 0px;
-  margin: 10px auto 0 auto;
+  margin: 0px auto;
   position: relative;
   transition-duration: var(--aniDuration);
   --aniDuration: 0.03s;
-  transform: translate(-30px, -5px);
+  transform: translate(-30px, -25px);
 }
 #bow:after {
   content: "";

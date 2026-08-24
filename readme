@@ -1,3 +1,7 @@
+# Requires 7zip, Node [Only for develeopment, for playing needs any browser and you are good.]
+
+## know issues: npm run build only works in BASH terminal, don't care to fix, but should be noted.
+
 Making an extremely lateweight game max 13kb zipped.
 The theme is Unicorns and Rainbows.
 

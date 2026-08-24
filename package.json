@@ -15,13 +15,14 @@
   },
   "license": "ISC",
   "author": "Thomas Truelsen",
-  "type": "module",
+  "type": "commonjs",
   "main": "main.js",
   "scripts": {
     "build": "npm run mini && npm run finalizer",
     "mini": "cd minified && cat ../src/core.js ../src/main.js > combined.js && terser -o main.js -c passes=2 -m toplevel -- combined.js && rm combined.js && cd .. && cp index.html ./minified/index.html && css-minify -f ./src/style.css -o ./minified/",
     "zip": "cd minified && 7z a ../game.zip . -xr!.DS_Store -xr!__MACOSX",
-    "finalizer": "node finalizer.js"
+    "finalizer": "node finalizer.js",
+    "release": "npm run build && npm run zip"
   },
   "dependencies": {
     "css-minify": "^2.1.0",

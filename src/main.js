@@ -207,7 +207,10 @@ const damageTile = (tile, damage) => {
     }
   }
 };
-const triggerTitleClick = (tile) => {
+const triggerTitleClick = (e, tile) => {
+  e.preventDefault();
+  e.stopPropagation();
+
   if (tile.root) {
     const rootTile = findRootTile(tile.root);
     console.log("Root tile found", rootTile);
@@ -285,11 +288,14 @@ const fireBow = (tile) => {
     const path = getProjectilePath(w.row[29][8], tile);
     console.log(path, path.length);
     path.forEach((t) => {
-      t.elm.classList.add("hit");
       damageTile(t, w.damage);
-      setTimeout(() => {
-        t.elm.classList.remove("hit");
-      }, w.tickIntval * 0.2);
+      if (w.trail) {
+        t.elm.classList.add("hit");
+
+        setTimeout(() => {
+          t.elm.classList.remove("hit");
+        }, w.tickIntval * 0.2);
+      }
     });
 
     if (magazineElm.lastChild) {
