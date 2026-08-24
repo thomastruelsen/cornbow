@@ -21,6 +21,7 @@ const w = {
   tickIntval: 1000,
   damage: 1,
   trail: false,
+  debug: true,
 };
 window.w = w;
 
@@ -39,6 +40,10 @@ const randomCordinates = () => {
   const row = Math.floor(Math.random() * (w.rows - 3)) + 2;
   const col = Math.floor(Math.random() * w.tilesPerRow);
   return { x: col, y: row };
+};
+
+const tileFree = (cordinates) => {
+  return !w.row[cordinates.y][cordinates.x]?.root;
 };
 
 const randomFreeCordinates = (unicorn = false) => {
@@ -78,9 +83,11 @@ const makeTiles = () => {
     w.row[i] = {};
     for (let j = 0; j < w.tilesPerRow; j++) {
       const tile = newDiv("tile", `tile-${i}-${j}`);
+      const tileContent = newDiv("tileC", `tile-${i}-${j}-c`);
+      tile.appendChild(tileContent);
       row.appendChild(tile);
       w.row[i][j] = {
-        elm: tile,
+        elm: tileContent,
         x: j,
         y: i,
       };
@@ -112,18 +119,15 @@ const animateEntity = (tile, animation = "", reset = false, cb) => {
           const tile = w.row[i][j];
           if (tile.root && tile.root.x === root.x && tile.root.y === root.y) {
             const t = tile.elm;
-            const elms = t.getElementsByClassName("entity");
-            if (elms.length > 0) {
-              elms[0].classList.add(animation);
-              setTimeout(() => {
-                if (reset) {
-                  elms[0]?.classList?.remove(animation);
-                }
-                if (cb) {
-                  cb();
-                }
-              }, w.tickIntval * 0.2);
-            }
+            t.classList.add(animation);
+            setTimeout(() => {
+              if (reset) {
+                t.classList.remove(animation);
+              }
+              if (cb) {
+                cb();
+              }
+            }, w.tickIntval * 0.2);
           }
         }
       }
@@ -223,7 +227,7 @@ const makeCornHub = (cordinates = { x: 0, y: 3 }, lvl = 1, entity) => {
   const rootLocation = cordinates;
   if (lvl > 3) {
     const cornHubTop = newDiv(
-      `${baseClass} top lvl${animateGrowth ? lvl - 1 : lvl}`,
+      `${baseClass} corn lvl${animateGrowth ? lvl - 1 : lvl}`,
     );
     w.row[cordinates.y - 2][cordinates.x].elm.appendChild(cornHubTop);
     w.row[cordinates.y - 2][cordinates.x].root = rootLocation;
@@ -238,17 +242,17 @@ const makeCornHub = (cordinates = { x: 0, y: 3 }, lvl = 1, entity) => {
     }, w.tickIntval * 0.6);
 
     setTimeout(() => {
-      cornHubTop.className = `${baseClass} top lvl${lvl}`;
+      cornHubTop.className = `${baseClass} corn lvl${lvl}`;
     }, w.tickIntval * 0.7);
   } else if (lvl > 1) {
     const cornHubTop = newDiv(
-      `${baseClass} top lvl${animateGrowth ? lvl - 1 : lvl}`,
+      `${baseClass} corn lvl${animateGrowth ? lvl - 1 : lvl}`,
     );
     w.row[cordinates.y - 1][cordinates.x].elm.appendChild(cornHubTop);
     w.row[cordinates.y - 1][cordinates.x].root = rootLocation;
 
     setTimeout(() => {
-      cornHubTop.className = `${baseClass} top lvl${lvl}`;
+      cornHubTop.className = `${baseClass} corn lvl${lvl}`;
     }, w.tickIntval * 0.6);
   }
 };
@@ -278,6 +282,13 @@ const makeUnicorn = (cordinates = { x: 0, y: 3 }, type = "common") => {
   const unicornHead = newDiv(`${baseClass} ${type} head`);
   w.row[cordinates.y - 1][cordinates.x - 1].elm.appendChild(unicornHead);
   w.row[cordinates.y - 1][cordinates.x - 1].root = cordinates;
+
+  const unicornHorn = newDiv(`${baseClass} ${type} horn`);
+  const unicornFace = newDiv(`${baseClass} ${type} face`);
+  const unicornEyes = newDiv(`${baseClass} ${type} eyes`);
+  unicornHead.appendChild(unicornHorn);
+  unicornHead.appendChild(unicornFace);
+  unicornHead.appendChild(unicornEyes);
 
   const unicornTail = newDiv(`${baseClass} ${type} body tail`);
   w.row[cordinates.y][cordinates.x + 1].elm.appendChild(unicornTail);
@@ -352,7 +363,9 @@ const boot = () => {
   //lockLayoutForMath;
   const headH = 50;
   document.getElementById("header").style.maxHeight = headH + "px";
-
+  if (w.debug) {
+    document.body.classList.add("debug");
+  }
   bindControls({ header: headH });
   reload();
   startLoop();

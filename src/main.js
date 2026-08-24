@@ -38,7 +38,11 @@ const startLoop = () => {
           const prevEntity = tile.entity;
           if (prevEntity.type === "cornHub") {
             prevEntity.growth++;
-            if (prevEntity.growth > weatherDuration && prevEntity.lvl < 4) {
+            if (
+              prevEntity.growth > weatherDuration &&
+              prevEntity.lvl < 4 &&
+              tileFree({ x: tile.x, y: tile.y - 1 })
+            ) {
               prevEntity.growth = 0;
               removeEntity(tile);
               makeCornHub(tile, prevEntity.lvl + 1, prevEntity);
@@ -52,6 +56,15 @@ const startLoop = () => {
                 prevEntity.dying = true;
                 animateEntity(tile, "dying");
               }
+            }
+          } else if (prevEntity.type === "unicorn") {
+            if (
+              !prevEntity.dying &&
+              tileFree({ x: tile.x - 1, y: tile.y }) &&
+              tileFree({ x: tile.x - 2, y: tile.y - 1 }) &&
+              tileFree({ x: tile.x - 1, y: tile.y - 1 })
+            ) {
+              console.log("Unicorn moving", prevEntity);
             }
           }
         }
