@@ -57,14 +57,72 @@ const startLoop = () => {
                 animateEntity(tile, "dying");
               }
             }
-          } else if (prevEntity.type === "unicorn") {
+          } else if (
+            prevEntity.isUnicorn &&
+            RNG(0, 100) > 50 &&
+            !prevEntity.dying
+          ) {
             if (
-              !prevEntity.dying &&
               tileFree({ x: tile.x - 1, y: tile.y }) &&
               tileFree({ x: tile.x - 2, y: tile.y - 1 }) &&
-              tileFree({ x: tile.x - 1, y: tile.y - 1 })
+              tileFree({ x: tile.x - 1, y: tile.y + 1 })
             ) {
-              console.log("Unicorn moving", prevEntity);
+              // move unicorn left
+              animateEntity(tile, "moving", true, () => {
+                setTimeout(() => {
+                  removeEntity(tile);
+                  makeUnicorn(
+                    { x: tile.x - 1, y: tile.y },
+                    prevEntity.type,
+                    prevEntity,
+                  );
+                }, 0);
+              });
+            } else if (RNG(0, 100) > 50) {
+              animateEntity(tile, "blink", true);
+              if (prevEntity.type === "fire") {
+                // Fire burns in adjacent tiles
+                const combined = [
+                  ...adjacentEntities(tile.x, tile.y),
+                  ...adjacentEntities(tile.x - 1, tile.y - 1),
+                ];
+                if (combined.length > 0) {
+                  animateEntity(tile, "burn", true);
+                  combined.forEach((t) => {
+                    if (
+                      t.root &&
+                      findRootTile(t.root).entity?.type === "cornHub"
+                    ) {
+                      findRootTile(t.root).entity.dying = true;
+                      animateEntity(findRootTile(t.root), "dying", true, () => {
+                        removeEntity(findRootTile(t.root));
+                      });
+                    } else if (
+                      t.root &&
+                      findRootTile(t.root).entity?.isUnicorn &&
+                      findRootTile(t.root).entity.type !== "fire" &&
+                      !findRootTile(t.root).entity?.dying
+                    ) {
+                      const unfortunateUnicorn = findRootTile(t.root).entity;
+                      unfortunateUnicorn.hp -= 5;
+                      if (unfortunateUnicorn.hp <= 0) {
+                        unfortunateUnicorn.dying = true;
+                        animateEntity(
+                          findRootTile(t.root),
+                          "dying",
+                          true,
+                          () => {
+                            removeEntity(findRootTile(t.root));
+                          },
+                        );
+                      } else {
+                        animateEntity(findRootTile(t.root), "attack", true);
+                      }
+                    }
+                  });
+                  console.log(combined);
+                }
+              }
             }
           }
         }
@@ -92,6 +150,17 @@ const updateWeather = () => {
     if (pos === 4) {
       spawn = 10;
       w.cycles++;
+      makeUnicorn(
+        randomFreeCordinates(),
+        w.unicornTrack[w.cycles % w.unicornTrack.length],
+      );
+      if (w.cycles >= w.unicornTrack.length) {
+        makeUnicorn(
+          randomFreeCordinates(),
+          w.unicornTrack[RNG(0, w.unicornTrack.length - 1)],
+        );
+      }
+
       return "rain sun " + w.r;
     }
   };
@@ -201,7 +270,7 @@ const damageTile = (tile, damage) => {
           rootTile.entity.clicked++;
           animateEntity(tile, "attack", true);
         }
-      } else if (rootTile.entity.type === "unicorn") {
+      } else if (rootTile.entity.isUnicorn) {
         rootTile.entity.hp -= damage;
         if (rootTile.entity.hp <= 0) {
           rootTile.entity.dying = true;

@@ -225,7 +225,31 @@ p {
 .tileC {
   width: 100%;
   height: 100%;
+  position: relative;
+  transform: translate(0px, 0px);
+  transition-duration: var(--aniDuration);
 }
+.tileC.moving {
+  transform: translate(-1px, 0px) rotate(-3deg) scale(1);
+  transform: translate(-7px, -2px) rotate(3deg) scale(1);
+}
+.tileC.moving .grey:not(.eyes),
+.tileC.attack .grey:not(.eyes) {
+  filter: opacity(1) grayscale(1);
+}
+.tileC.moving .head {
+  transform: translate(10px, 7px) rotate(15deg);
+}
+.tileC.moving .legs {
+  transform: rotate(319deg) translate(5px, -3px);
+}
+.tileC.burn {
+  filter: drop-shadow(2px 4px 6px orange);
+}
+.burn .unicorn.fire {
+  filter: drop-shadow(0px 0px 20px var(--orange));
+}
+
 .tileC.hit {
   border-color: var(--orange);
   box-shadow: inset 0px 0px 10px 0px var(--red);
@@ -471,13 +495,33 @@ p {
   box-shadow: inset 0px 0px 2px 0px #6a6a6a;
   background: var(--ucolor);
   position: relative;
-  animation-duration: var(--aniDuration);
+  transition-duration: var(--aniDuration);
 }
 .unicorn:after {
   content: "";
   display: block;
   background: var(--ucolor);
-  animation-duration: var(--aniDuration);
+  transition-duration: var(--aniDuration);
+}
+
+.unicorn.fire {
+  --ucolor: var(--red);
+  box-shadow: inset 0px 0px 2px 0px #ff7f00;
+}
+.unicorn.grey {
+  --ucolor: var(--red);
+  box-shadow: inset 0px 0px 2px 0px #ff7f00;
+  filter: grayscale(1) opacity(0);
+}
+.tileC:not(.moving) .unicorn.grey.head,
+.tileC:not(.attack) .unicorn.grey.head {
+  filter: grayscale(1) opacity(1);
+  box-shadow: unset;
+  background-color: unset;
+}
+.unicorn.grey.entity.eyes,
+.grey.unicorn.horn:before {
+  filter: opacity(1);
 }
 .unicorn.head {
   width: 100%;
@@ -492,6 +536,12 @@ p {
 .unicorn.body {
   height: 100%;
   border-radius: 20px 0px 0px 30px;
+}
+.unicorn.mane {
+  width: 17px;
+  height: 3px;
+  position: absolute;
+  transform: rotate(16deg) translate(2px, -3px);
 }
 .unicorn.body:not(.tail):after {
   content: "";
@@ -535,6 +585,7 @@ p {
   background: var(--ucolor);
   border-radius: 0 0 35% 35%;
   border-bottom: 1px solid #a4a4a4;
+  transition-duration: unset;
 }
 .unicorn.legs:before {
   content: "";
@@ -547,7 +598,7 @@ p {
   margin-top: -2px;
 }
 .unicorn.back.legs:before {
-  transform: translate(-13px, -4px) rotate(381deg);
+  transform: translate(-15px, 0px) rotate(381deg);
   z-index: -2;
   position: relative;
 }
@@ -556,7 +607,7 @@ p {
   height: 10px;
   position: absolute;
   border-radius: 100%;
-  background-color: pink;
+  background-color: #fff1ff;
   top: 1px;
   box-shadow: inset 0px 0px 1px 0px #6a6a6a;
 }
@@ -584,10 +635,29 @@ p {
   width: 5px;
   position: absolute;
   top: -9px;
-  left: 9px;
+  left: 8px;
   border-radius: 15px 2px 0px 0px;
 }
-
+.unicorn.ear {
+  width: 4px;
+  height: 6px;
+  position: absolute;
+  left: 14px;
+  top: -3px;
+  border-radius: 8px 8px 0px 0px;
+  transform: rotate(38deg);
+  box-shadow: inset 0px 0px 1px 1px white;
+  background-color: #e9cde9;
+  z-index: 1;
+}
+.entity.unicorn.horn:before {
+  content: "";
+  display: block;
+  width: 14px;
+  height: 2px;
+  --s: 4px;
+  transform: rotate(57deg) translate(11px, 5px);
+}
 .unicorn.entity.eyes {
   width: 4px;
   position: relative;
@@ -599,12 +669,37 @@ p {
   box-shadow: none;
 }
 
+.blink .unicorn.eyes,
+.tileC.moving .unicorn.eyes {
+  height: 1px;
+  background-color: white;
+}
+
 .unicorn.eyes:after {
   height: 1px;
   width: 1px;
-  background-color: var(--ucolor);
+  background-color: white;
   transform: translate(1px, 1px) scale(1);
   border-radius: 50%;
+}
+
+.unicorn.mane,
+.unicorn.horn:before,
+.unicorn.tail:after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 1) 0%,
+    rgba(255, 154, 0, 1) 10%,
+    rgba(208, 222, 33, 1) 20%,
+    rgba(79, 220, 74, 1) 30%,
+    rgba(63, 218, 216, 1) 40%,
+    rgba(47, 201, 226, 1) 50%,
+    rgba(28, 127, 238, 1) 60%,
+    rgba(95, 21, 242, 1) 70%,
+    rgba(186, 12, 248, 1) 80%,
+    rgba(251, 7, 217, 1) 90%,
+    rgba(255, 0, 0, 1) 100%
+  );
 }
 
 .attack {

@@ -14,6 +14,7 @@ const w = {
   locked: false,
   weatherTimer: 0,
   weatherTrack: [0, 1, 0, 1, 3, 0, 1, 0, 1, 4],
+  unicornTrack: ["common", "fire", "grey"],
   weatherTrackPos: 0,
   uniHits: 0,
   cycles: 0,
@@ -42,8 +43,26 @@ const randomCordinates = () => {
   return { x: col, y: row };
 };
 
+const RNG = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
 const tileFree = (cordinates) => {
   return !w.row[cordinates.y][cordinates.x]?.root;
+};
+
+const adjacentEntities = (x, y) => {
+  const adjacent = [];
+
+  if (!tileFree({ x: x, y: y - 1 })) adjacent.push(w.row[y - 1][x]);
+  if (!tileFree({ x: x, y: y + 1 })) adjacent.push(w.row[y + 1][x]);
+  if (!tileFree({ x: x - 1, y: y })) adjacent.push(w.row[y][x - 1]);
+  if (!tileFree({ x: x + 1, y: y })) adjacent.push(w.row[y][x + 1]);
+  if (!tileFree({ x: x - 1, y: y - 1 })) adjacent.push(w.row[y - 1][x - 1]);
+  if (!tileFree({ x: x + 1, y: y - 1 })) adjacent.push(w.row[y - 1][x + 1]);
+  if (!tileFree({ x: x - 1, y: y + 1 })) adjacent.push(w.row[y + 1][x - 1]);
+  if (!tileFree({ x: x + 1, y: y + 1 })) adjacent.push(w.row[y + 1][x + 1]);
+
+  return adjacent;
 };
 
 const randomFreeCordinates = (unicorn = false) => {
@@ -53,7 +72,8 @@ const randomFreeCordinates = (unicorn = false) => {
     const cordinates = randomCordinates();
 
     const occupied =
-      w.row[cordinates.y][cordinates.x]?.root ||
+      (w.row[cordinates.y][cordinates.x]?.root &&
+        w.row[cordinates.y][cordinates.x]?.elm.childNodes.length) < 1 ||
       w.row[cordinates.y - 1][cordinates.x]?.root ||
       w.row[cordinates.y - 2][cordinates.x]?.root;
 
@@ -100,8 +120,15 @@ const makeTiles = () => {
 };
 
 const findRootTile = (cordinates) => {
-  const rootTile = w.row[cordinates.y][cordinates.x];
-  return rootTile;
+  if (
+    cordinates?.y &&
+    cordinates?.x &&
+    w?.row[cordinates.y] &&
+    w?.row[cordinates.y][cordinates.x]
+  ) {
+    const rootTile = w?.row[cordinates.y][cordinates.x];
+    return rootTile;
+  } else return {};
 };
 
 w.getWidthProgress = getWidthProgress;
@@ -146,7 +173,7 @@ const removeEntity = (tile) => {
       for (let i = 0; i < w.rows; i++) {
         for (let j = 0; j < w.tilesPerRow; j++) {
           const tile = w.row[i][j];
-          if (tile.root && tile.root.x === root.x && tile.root.y === root.y) {
+          if (tile.root && tile.root.x === root?.x && tile.root.y === root?.y) {
             tile.entity = null;
             tile.elm.innerHTML = "";
             tile.root = null;
@@ -192,9 +219,19 @@ const newEntity = (type, lvl = 1, entityData = {}) => {
       entity.hp = 30;
       entity.cornDrop = 250;
     }
-  } else if (type === "unicorn") {
+  } else if (
+    type === "unicorn" ||
+    type === "common" ||
+    type === "fire" ||
+    type === "grey"
+  ) {
     entity.hp = 10;
     entity.damage = 100;
+    entity.isUnicorn = true;
+  }
+
+  if (type === "fire" || type === "grey") {
+    entity.hp = 50;
   }
   return entity;
 };
@@ -257,7 +294,7 @@ const makeCornHub = (cordinates = { x: 0, y: 3 }, lvl = 1, entity) => {
   }
 };
 
-const makeUnicorn = (cordinates = { x: 0, y: 3 }, type = "common") => {
+const makeUnicorn = (cordinates = { x: 0, y: 3 }, type = "common", entity) => {
   if (!cordinates) {
     return;
   }
@@ -273,8 +310,10 @@ const makeUnicorn = (cordinates = { x: 0, y: 3 }, type = "common") => {
   const rootCords = w.row[cordinates.y][cordinates.x];
   const baseClass = "unicorn entity";
   const unicorn = newDiv(` ${baseClass} ${type} body`);
+  const unicornMane = newDiv(` ${baseClass} ${type} mane`);
+  unicorn.appendChild(unicornMane);
   rootCords.elm.appendChild(unicorn);
-  rootCords.entity = newEntity("unicorn", 1);
+  rootCords.entity = newEntity(type, 1, entity);
   rootCords.root = cordinates;
   rootCords.x = cordinates.x;
   rootCords.y = cordinates.y;
@@ -284,9 +323,11 @@ const makeUnicorn = (cordinates = { x: 0, y: 3 }, type = "common") => {
   w.row[cordinates.y - 1][cordinates.x - 1].root = cordinates;
 
   const unicornHorn = newDiv(`${baseClass} ${type} horn`);
+  const unicornEar = newDiv(`${baseClass} ${type} ear`);
   const unicornFace = newDiv(`${baseClass} ${type} face`);
   const unicornEyes = newDiv(`${baseClass} ${type} eyes`);
   unicornHead.appendChild(unicornHorn);
+  unicornHead.appendChild(unicornEar);
   unicornHead.appendChild(unicornFace);
   unicornHead.appendChild(unicornEyes);
 
@@ -358,7 +399,8 @@ const boot = () => {
   makeCornHub(randomFreeCordinates(), 4);
   makeCornHub(randomFreeCordinates(), 5);
 
-  makeUnicorn(randomFreeCordinates(true), "common");
+  makeUnicorn({ x: 8, y: 12 }, "grey");
+  makeUnicorn({ x: 10, y: 12 }, "fire");
 
   //lockLayoutForMath;
   const headH = 50;
